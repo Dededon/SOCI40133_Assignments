@@ -1,0 +1,43 @@
+---
+title: "TextEffect with R"
+author: "Ryan Leung"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r}
+library(glmnet)
+library(texteffect)
+```
+```{r}
+library(readr)
+prev_tf_matrix <- read_csv("C:/Users/aruba/Documents/SOCI40133/Homework-Notebooks-2024-Winter/week 7/prev_tf_matrix.csv")
+Y <- prev_tf_matrix$outcome_variable
+X <- prev_tf_matrix[,-ncol(prev_tf_matrix)]
+train.ind <- sample(1:nrow(X), size = 0.5*nrow(X), replace = FALSE)
+X[is.na(X)] <- 0
+```
+
+```{r}
+# Fit an sIBP on the training data
+sibp.search <- sibp_param_search(X, Y, K = 5, alphas = c(2,3,4), sigmasq.ns = c(0.6, 0.8, 1), iters=1, train.ind = train.ind)
+```
+```{r}
+sibp_rank_runs(sibp.search, X, 10)
+```
+
+```{r}
+sibp_top_words(sibp.search[["3"]][["0.6"]][[1]], colnames(X), 10, verbose = TRUE)
+```
+
+```{r}
+# Plotting the AMCE Validation on the test set
+sibp.fit_1 <- sibp.search[["3"]][["0.6"]][[1]]
+amce<-sibp_amce(sibp.fit_1, X, Y)
+amce
+```
+```{r}
+sibp_amce_plot(amce)
+```
+
